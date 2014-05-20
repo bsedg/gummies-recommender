@@ -16,6 +16,10 @@ composition_counts = df['composition'].value_counts()
 colour_counts = df['colour-count'].value_counts()
 
 
+print "\n---------------------------------------"
+print "General Statistics of Attribtues, Values"
+print "---------------------------------------"
+
 print "Flavour: \n\tsour: %d\n\tsweet: %d" % \
     (flavour_counts['sour'], flavour_counts['sweet'])
 print "Size: \n\tsmall: %d\n\tmedium: %d\n\tlarge: %d" % \
@@ -29,3 +33,9 @@ print "Colour Count: \n\t1: %d\n\t2: %d\n\t4: %d" % \
 
 print "Score breakdown:"
 print df.describe()['score']
+
+print "\n---------------------------------------"
+print "Group By Attributes, Sort by Mean Score"
+print "---------------------------------------"
+grouped = df.groupby(['size', 'flavour', 'composition', 'colour-count'])
+print grouped.mean().sort('score', ascending=False)
