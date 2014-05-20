@@ -1,1 +1,1 @@
-cat scores.json | sed "s/'/\"/g" | sed "s/\"size\":/\"size\":\"/g" | sed "s/, \"flavour\":/\", \"flavour\":\"/g" | sed "s/, \"composition\":/\", \"composition\":\"/g" | sed "s/, \"colour-count\"/\", \"colour-count\"/g" | sed "s/}/},/g" > cleaned_scores.json 
+cat scores.json | sed "s/'/\"/g" | sed "s/\"size\":/\"size\":\"/g" | sed "s/, \"flavour\":/\", \"flavour\":\"/g" | sed "s/, \"composition\":/\", \"composition\":\"/g" | sed "s/, \"colour-count\"/\", \"colour-count\"/g" | sed "s/}/}/g" > cleaned_scores.json 
