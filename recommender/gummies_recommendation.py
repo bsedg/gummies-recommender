@@ -15,6 +15,7 @@ import json
 
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
 
+
 def find_ratios_for_attribute(df, attribute):
     """
     df: DataFrame (pandas) for the loaded data
@@ -32,12 +33,14 @@ def find_ratios_for_attribute(df, attribute):
 
     print(repr(result))
 
+
 def main():
     scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
     df = pd.DataFrame(scores)
     
     for attribute in ATTRIBUTES:
         find_ratios_for_attribute(df, attribute)
+
 
 if __name__ == '__main__':
     main()
