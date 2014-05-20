@@ -9,7 +9,7 @@ import json
 scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
 df = pd.DataFrame(scores)
 
-# counts for each column/key
+# counts for each attribute
 flavour_counts = df['flavour'].value_counts()
 size_counts = df['size'].value_counts()
 composition_counts = df['composition'].value_counts()
