@@ -56,6 +56,9 @@ def find_weights(df, attributes):
 
     return result
 
+def get_combination_display_string(combination_string):
+    return combination_string
+
 def find_biased_distribution(weighted_ratios):
     """
     Unlike the fair distribution, this approach uses an unbounded knapsack
@@ -79,7 +82,7 @@ def find_fair_distribution(weighted_ratios):
 
     print("| Combination | Percentage |")
     for sorted_weight in sorted_weights:
-        print("| %s | %f |" % (sorted_weight[0], (sorted_weight[1]['weight'] / ratio_sum)))
+        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0]), (sorted_weight[1]['weight'] / ratio_sum)))
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
