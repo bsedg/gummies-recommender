@@ -16,12 +16,12 @@ import json
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
 
 
-def find_ratios_for_attribute(df, attribute):
+def find_ratios_for_attribute(df, attributes):
     """
     df: DataFrame (pandas) for the loaded data
-    attribute: String value of the attribute
+    attributes: String value of the attribute
     """
-    grouped = df.groupby([attribute])
+    grouped = df.groupby(attributes)
     groupby_mean = grouped.mean().sort('score', ascending=False)
     generator_rows = groupby_mean.iterrows()
     rows = [row for row in generator_rows]
@@ -39,7 +39,7 @@ def main():
     df = pd.DataFrame(scores)
     
     for attribute in ATTRIBUTES:
-        find_ratios_for_attribute(df, attribute)
+        find_ratios_for_attribute(df, [attribute])
 
 
 if __name__ == '__main__':
