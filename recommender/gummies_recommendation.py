@@ -75,8 +75,13 @@ def find_biased_distribution(weighted_ratios, is_all=True):
     sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
 
     total_ratio = 0.0
+    print("| Attribute Combination | Percentage |")
     for sorted_weight in sorted_weights:
-        print(sorted_weight)
+        total_ratio_remaining_after_add = 100.0 - sorted_weight[1]['weight']
+        total_ratio += sorted_weight[1]['weight']
+        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), sorted_weight[1]['weight']))
+
+    print("| Total | %f |" % total_ratio)
 
 
 def find_fair_distribution(weighted_ratios, is_all=True):
@@ -89,8 +94,7 @@ def find_fair_distribution(weighted_ratios, is_all=True):
 
     print("| Attribute Combination | Percentage |")
     for sorted_weight in sorted_weights:
-        #print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
-        pass
+        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
