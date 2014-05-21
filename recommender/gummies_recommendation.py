@@ -9,6 +9,8 @@ saturate the market without oversupplying? (Ratios between attributes are fine;
 no need to figure out how many units need to be produced.)
 """
 from __future__ import print_function, division
+import sys
+import getopt
 import pandas as pd
 import json
 
@@ -16,7 +18,7 @@ import json
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
 
 
-def find_ratios_for_attribute(df, attributes):
+def find_ratios_for_attributes(df, attributes):
     """
     df: DataFrame (pandas) for the loaded data
     attributes: String value of the attribute
@@ -33,14 +35,38 @@ def find_ratios_for_attribute(df, attributes):
 
     print(repr(result))
 
-
+'''
 def main():
     scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
     df = pd.DataFrame(scores)
     
     for attribute in ATTRIBUTES:
         find_ratios_for_attribute(df, [attribute])
+'''
+
+def main(argv):
+    all_attributes = False
+
+    try:
+        opts, args = getopt.getopt(argv,"all",["all"])
+    except getopt.GetoptError:
+        print('gummies_recommendation.py --all')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '--all':
+            all_attributes = True
+
+    scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
+    df = pd.DataFrame(scores)
+
+    if all_attributes:
+        find_ratios_for_attribute(df, ATTRIBUTES)
+    else:
+        for attribute in ATTRIBUTES:
+            print(attribute)
+            find_ratios_for_attribute(df, [attribute])
+            print
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
