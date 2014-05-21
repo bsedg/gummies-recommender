@@ -110,7 +110,7 @@ def main(argv):
         print('gummies_recommendation.py -a [size,flavour,colour-count,composition] -f ../data/cleaned_scores.json -t [fair, biased]')
         sys.exit(2)
     for opt, arg in opts:
-        if opt in ("-i", "--file"):
+        if opt in ("-f", "--file"):
             file_name = arg
         elif opt in ("-a", "--attribute"):
             if arg in ATTRIBUTES:
