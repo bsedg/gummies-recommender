@@ -30,12 +30,8 @@ def calculate_weight(score, average_score, total_combinations):
     combinations of given attribtues.
     """
     average_percentage = 100.0 / total_combinations
-    print("\tAve Percent: %f" % average_percentage)
-
     diff_from_average_score = score - average_score
-    print("\tDiff from ave: %f" % diff_from_average_score)
     percentage_change = diff_from_average_score * 10
-    print("\tPercent change: %f" % percentage_change)
 
     # add the percentage change to the average percentage
     return average_percentage + (average_percentage * percentage_change)
@@ -54,9 +50,11 @@ def find_weights(df, attributes):
 
     result = {}
     for row in rows:
-        #result[row[0]] = math.abs(row[1].values[0] - average_score)
-        print(row[0])
-        print("\tWeight: %f" % calculate_weight(float(row[1].values[0]), average_score, len(rows)))
+        result[row[0]] = {
+            "weight": calculate_weight(float(row[1].values[0]), average_score, total_scores)
+        }
+
+    return result
 
 
 def main(argv):
