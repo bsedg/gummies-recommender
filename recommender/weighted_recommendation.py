@@ -17,7 +17,7 @@ import sys
 import getopt
 import pandas as pd
 import json
-import math
+import operator
 
 
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
@@ -51,7 +51,7 @@ def find_weights(df, attributes):
     result = {}
     for row in rows:
         result[row[0]] = {
-            "weight": calculate_weight(float(row[1].values[0]), average_score, total_scores)
+            "weight": calculate_weight(float(row[1].values[0]), average_score, len(rows))
         }
 
     return result
@@ -62,6 +62,12 @@ def find_biased_distribution(weighted_ratios):
     inspired algorithm to calculate the highest score to be placed in the
     distribution based on the calculated weight.
     """
+    sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
+
+    total_ratio = 0.0
+    for sorted_weight in sorted_weights:
+        print(sorted_weight)
+
 
 def find_fair_distribution(weighted_ratios):
     """
@@ -69,9 +75,11 @@ def find_fair_distribution(weighted_ratios):
     the chance of eliminating any attribute combinations.
     """
     ratio_sum = sum(weighted_ratios[key]['weight'] for key in weighted_ratios.keys())
+    sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
+
     print("| Combination | Percentage |")
-    for key in weighted_ratios.keys():
-        print("| %s | %f |" % (key, (weighted_ratios[key]['weight'] / ratio_sum)))
+    for sorted_weight in sorted_weights:
+        print("| %s | %f |" % (sorted_weight[0], (sorted_weight[1]['weight'] / ratio_sum)))
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
