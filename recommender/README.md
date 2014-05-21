@@ -41,6 +41,7 @@ Still a rather even distribution, but there is some skew toward fewer colour cou
 Using a biased recommendation, bias coefficient set to 10.0, the following distribution percentages are shown in the table below.
 
 | Attribute Combination | Percentage |
+| --------------------- | ---------- |
 | large, sweet, gummy, 1 flavours | 3.654840 |
 | large, sweet, marshmallow, 1 flavours | 3.245110 |
 | large, sweet, gummy, 2 flavours | 3.216953 |
