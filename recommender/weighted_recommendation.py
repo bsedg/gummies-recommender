@@ -56,7 +56,7 @@ def find_weights(df, attributes):
 
     return result
 
-def find_biased_distribution():
+def find_biased_distribution(weighted_ratios):
     """
     Unlike the fair distribution, this approach uses an unbounded knapsack
     inspired algorithm to calculate the highest score to be placed in the
@@ -78,11 +78,12 @@ def main(argv):
     all_attributes = True
     attribute = 'size'
     file_name = '../data/cleaned_scores.json'
+    strategy = 'fair'
 
     try:
-        opts, args = getopt.getopt(argv,"hf:a:",["file=","attributes="])
+        opts, args = getopt.getopt(argv,"hf:a:t:",["file=", "attributes=", "type="])
     except getopt.GetoptError:
-        print('weighted_recommendation.py -a size -f ../data/cleaned_scores.json')
+        print('weighted_recommendation.py -a [size,flavour,colour-count,composition] -f ../data/cleaned_scores.json -t [fair, biased]')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-i", "--file"):
@@ -91,12 +92,19 @@ def main(argv):
             if arg in ATTRIBUTES:
                 all_attributes = False
                 attribute = arg
+        elif opt in ("-t", "--type"):
+            if arg in ["fair", "biased"]:
+                strategy = arg
 
     scores = [json.loads(line) for line in open(file_name)]
     df = pd.DataFrame(scores)
 
     weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
-    find_fair_distribution(weighted_ratios)
+
+    if strategy == 'fair':
+        find_fair_distribution(weighted_ratios)
+    else:
+        find_biased_distribution(weighted_ratios)
 
 
 if __name__ == '__main__':
