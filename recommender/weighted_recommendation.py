@@ -56,8 +56,15 @@ def find_weights(df, attributes):
 
     return result
 
-def get_combination_display_string(combination_string):
-    return combination_string
+def get_combination_display_string(combination_tuple, is_all=True):
+    """
+    For all the attribtues, the string in the tuple from
+    the dataframe is (u'small', u'sour', u'jube-jube', 4)
+    """
+    if is_all:
+        return "%s, %s, %s, %s flavours" % (combination_tuple[0], combination_tuple[1], combination_tuple[2], combination_tuple[3])
+    else:
+        return "%s" % (combination_tuple)
 
 def find_biased_distribution(weighted_ratios):
     """
@@ -72,7 +79,7 @@ def find_biased_distribution(weighted_ratios):
         print(sorted_weight)
 
 
-def find_fair_distribution(weighted_ratios):
+def find_fair_distribution(weighted_ratios, is_all=True):
     """
     A fair distribution calcuation provides a 'safer' recommendation without
     the chance of eliminating any attribute combinations.
@@ -80,9 +87,9 @@ def find_fair_distribution(weighted_ratios):
     ratio_sum = sum(weighted_ratios[key]['weight'] for key in weighted_ratios.keys())
     sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
 
-    print("| Combination | Percentage |")
+    print("| Attribute Combination | Percentage |")
     for sorted_weight in sorted_weights:
-        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0]), (sorted_weight[1]['weight'] / ratio_sum)))
+        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
@@ -113,9 +120,9 @@ def main(argv):
     weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
 
     if strategy == 'fair':
-        find_fair_distribution(weighted_ratios)
+        find_fair_distribution(weighted_ratios, all_attributes)
     else:
-        find_biased_distribution(weighted_ratios)
+        find_biased_distribution(weighted_ratios, all_attributes)
 
 
 if __name__ == '__main__':
