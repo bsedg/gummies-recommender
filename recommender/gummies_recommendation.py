@@ -23,7 +23,7 @@ import operator
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
 
 
-def calculate_weight(score, average_score, total_combinations):
+def calculate_weight(score, average_score, total_combinations, bias=1.0):
     """
     Calculates a new ratio, weight for the attribute combination
     based on score, average of the scores, and total number of
@@ -31,12 +31,12 @@ def calculate_weight(score, average_score, total_combinations):
     """
     average_percentage = 100.0 / total_combinations
     diff_from_average_score = score - average_score
-    percentage_change = diff_from_average_score
+    percentage_change = diff_from_average_score * bias
 
     # add the percentage change to the average percentage
     return average_percentage + (average_percentage * percentage_change)
 
-def find_weights(df, attributes):
+def find_weights(df, attributes, bias=1.0):
     """
     df: DataFrame (pandas) for the loaded data
     attributes: String value of the attribute
@@ -51,7 +51,7 @@ def find_weights(df, attributes):
     result = {}
     for row in rows:
         result[row[0]] = {
-            "weight": calculate_weight(float(row[1].values[0]), average_score, len(rows))
+            "weight": calculate_weight(float(row[1].values[0]), average_score, len(rows), bias)
         }
 
     return result
@@ -66,7 +66,7 @@ def get_combination_display_string(combination_tuple, is_all=True):
     else:
         return "%s" % (combination_tuple)
 
-def find_biased_distribution(weighted_ratios):
+def find_biased_distribution(weighted_ratios, is_all=True):
     """
     Unlike the fair distribution, this approach uses an unbounded knapsack
     inspired algorithm to calculate the highest score to be placed in the
@@ -89,7 +89,8 @@ def find_fair_distribution(weighted_ratios, is_all=True):
 
     print("| Attribute Combination | Percentage |")
     for sorted_weight in sorted_weights:
-        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
+        #print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
+        pass
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
@@ -97,9 +98,10 @@ def main(argv):
     attribute = 'size'
     file_name = '../data/cleaned_scores.json'
     strategy = 'fair'
+    bias_coefficient = 10.0
 
     try:
-        opts, args = getopt.getopt(argv,"hf:a:t:",["file=", "attributes=", "type="])
+        opts, args = getopt.getopt(argv,"hf:a:t:b:",["file=", "attributes=", "type=", "bias="])
     except getopt.GetoptError:
         print('gummies_recommendation.py -a [size,flavour,colour-count,composition] -f ../data/cleaned_scores.json -t [fair, biased]')
         sys.exit(2)
@@ -113,15 +115,21 @@ def main(argv):
         elif opt in ("-t", "--type"):
             if arg in ["fair", "biased"]:
                 strategy = arg
+        elif opt in ("-b", "--bias"):
+            try:
+                bias_value = float(arg)
+                bias_coefficient = bias_value
+            except:
+                pass
 
     scores = [json.loads(line) for line in open(file_name)]
     df = pd.DataFrame(scores)
 
-    weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
-
     if strategy == 'fair':
+        weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
         find_fair_distribution(weighted_ratios, all_attributes)
     else:
+        weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute], bias_coefficient)
         find_biased_distribution(weighted_ratios, all_attributes)
 
 
