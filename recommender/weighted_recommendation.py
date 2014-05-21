@@ -31,7 +31,7 @@ def calculate_weight(score, average_score, total_combinations):
     """
     average_percentage = 100.0 / total_combinations
     diff_from_average_score = score - average_score
-    percentage_change = diff_from_average_score * 10
+    percentage_change = diff_from_average_score
 
     # add the percentage change to the average percentage
     return average_percentage + (average_percentage * percentage_change)
@@ -56,11 +56,48 @@ def find_weights(df, attributes):
 
     return result
 
+def find_biased_distribution():
+    """
+    Unlike the fair distribution, this approach uses an unbounded knapsack
+    inspired algorithm to calculate the highest score to be placed in the
+    distribution based on the calculated weight.
+    """
+
+def find_fair_distribution(weighted_ratios):
+    """
+    A fair distribution calcuation provides a 'safer' recommendation without
+    the chance of eliminating any attribute combinations.
+    """
+    ratio_sum = sum(weighted_ratios[key]['weight'] for key in weighted_ratios.keys())
+    print("| Combination | Percentage |")
+    for key in weighted_ratios.keys():
+        print("| %s | %f |" % (key, (weighted_ratios[key]['weight'] / ratio_sum)))
 
 def main(argv):
-    scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
+    # arbitrary defaults chosen if input parameters are not provided
+    all_attributes = True
+    attribute = 'size'
+    file_name = '../data/cleaned_scores.json'
+
+    try:
+        opts, args = getopt.getopt(argv,"hf:a:",["file=","attributes="])
+    except getopt.GetoptError:
+        print('weighted_recommendation.py -a size -f ../data/cleaned_scores.json')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt in ("-i", "--file"):
+            file_name = arg
+        elif opt in ("-a", "--attribute"):
+            if arg in ATTRIBUTES:
+                all_attributes = False
+                attribute = arg
+
+    scores = [json.loads(line) for line in open(file_name)]
     df = pd.DataFrame(scores)
-    find_weights(df, ATTRIBUTES)
+
+    weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
+    find_fair_distribution(weighted_ratios)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
