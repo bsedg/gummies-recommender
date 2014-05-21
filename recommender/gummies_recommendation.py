@@ -1,24 +1,42 @@
 """
 gummies_recommendation.py
 
+Task:
 Given a (newline-delimited JSON) file of data, investigate correlation(s)
 between the score and the rest of the attributes. Think in the context of
 preparing a report for a gummy worm factory trying to decided how to tweak
 their next production run. How many of each type should be produced in order to
 saturate the market without oversupplying? (Ratios between attributes are fine;
 no need to figure out how many units need to be produced.)
+
+Solution:
+
 """
 from __future__ import print_function, division
 import sys
 import getopt
 import pandas as pd
 import json
+import operator
 
 
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
 
 
-def find_ratios_for_attributes(df, attributes):
+def calculate_weight(score, average_score, total_combinations):
+    """
+    Calculates a new ratio, weight for the attribute combination
+    based on score, average of the scores, and total number of
+    combinations of given attribtues.
+    """
+    average_percentage = 100.0 / total_combinations
+    diff_from_average_score = score - average_score
+    percentage_change = diff_from_average_score
+
+    # add the percentage change to the average percentage
+    return average_percentage + (average_percentage * percentage_change)
+
+def find_weights(df, attributes):
     """
     df: DataFrame (pandas) for the loaded data
     attributes: String value of the attribute
@@ -27,45 +45,84 @@ def find_ratios_for_attributes(df, attributes):
     groupby_mean = grouped.mean().sort('score', ascending=False)
     generator_rows = groupby_mean.iterrows()
     rows = [row for row in generator_rows]
-    total_scores = sum(x[1].values[0] for x in rows)
-    
+    total_scores = sum(float(x[1].values[0]) for x in rows)
+    average_score = total_scores / len(rows)
+
     result = {}
     for row in rows:
-        result[row[0]] = row[1].values[0] / total_scores
+        result[row[0]] = {
+            "weight": calculate_weight(float(row[1].values[0]), average_score, len(rows))
+        }
 
-    print(repr(result))
+    return result
 
-'''
-def main():
-    scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
-    df = pd.DataFrame(scores)
-    
-    for attribute in ATTRIBUTES:
-        find_ratios_for_attribute(df, [attribute])
-'''
+def get_combination_display_string(combination_tuple, is_all=True):
+    """
+    For all the attribtues, the string in the tuple from
+    the dataframe is (u'small', u'sour', u'jube-jube', 4)
+    """
+    if is_all:
+        return "%s, %s, %s, %s flavours" % (combination_tuple[0], combination_tuple[1], combination_tuple[2], combination_tuple[3])
+    else:
+        return "%s" % (combination_tuple)
+
+def find_biased_distribution(weighted_ratios):
+    """
+    Unlike the fair distribution, this approach uses an unbounded knapsack
+    inspired algorithm to calculate the highest score to be placed in the
+    distribution based on the calculated weight.
+    """
+    sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
+
+    total_ratio = 0.0
+    for sorted_weight in sorted_weights:
+        print(sorted_weight)
+
+
+def find_fair_distribution(weighted_ratios, is_all=True):
+    """
+    A fair distribution calcuation provides a 'safer' recommendation without
+    the chance of eliminating any attribute combinations.
+    """
+    ratio_sum = sum(weighted_ratios[key]['weight'] for key in weighted_ratios.keys())
+    sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
+
+    print("| Attribute Combination | Percentage |")
+    for sorted_weight in sorted_weights:
+        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
 
 def main(argv):
-    all_attributes = False
+    # arbitrary defaults chosen if input parameters are not provided
+    all_attributes = True
+    attribute = 'size'
+    file_name = '../data/cleaned_scores.json'
+    strategy = 'fair'
 
     try:
-        opts, args = getopt.getopt(argv,"all",["all"])
+        opts, args = getopt.getopt(argv,"hf:a:t:",["file=", "attributes=", "type="])
     except getopt.GetoptError:
-        print('gummies_recommendation.py --all')
+        print('gummies_recommendation.py -a [size,flavour,colour-count,composition] -f ../data/cleaned_scores.json -t [fair, biased]')
         sys.exit(2)
     for opt, arg in opts:
-        if opt == '--all':
-            all_attributes = True
+        if opt in ("-i", "--file"):
+            file_name = arg
+        elif opt in ("-a", "--attribute"):
+            if arg in ATTRIBUTES:
+                all_attributes = False
+                attribute = arg
+        elif opt in ("-t", "--type"):
+            if arg in ["fair", "biased"]:
+                strategy = arg
 
-    scores = [json.loads(line) for line in open('../data/cleaned_scores.json')]
+    scores = [json.loads(line) for line in open(file_name)]
     df = pd.DataFrame(scores)
 
-    if all_attributes:
-        find_ratios_for_attribute(df, ATTRIBUTES)
+    weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
+
+    if strategy == 'fair':
+        find_fair_distribution(weighted_ratios, all_attributes)
     else:
-        for attribute in ATTRIBUTES:
-            print(attribute)
-            find_ratios_for_attribute(df, [attribute])
-            print
+        find_biased_distribution(weighted_ratios, all_attributes)
 
 
 if __name__ == '__main__':
