@@ -96,7 +96,8 @@ def find_biased_distribution(weighted_ratios, output, attribute, is_all=True):
 
     total_ratio = 0.0
     if output == 'markdown':
-        print("| Attribute Combination | Percentage |")
+        print('| %s | Percentage |' % ('Attribute Combination' if is_all else attribute))
+        print('| ----- | ------ |')
 
     for sorted_weight in sorted_weights:
         total_ratio_remaining_after_add = 100.0 - sorted_weight[1]['weight']
@@ -121,7 +122,8 @@ def find_fair_distribution(weighted_ratios, output, attribute, is_all=True):
     sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
 
     if output == 'markdown':
-        print('| Attribute Combination | Percentage |')
+        print('| %s | Percentage |' % ('Attribute Combination' if is_all else attribute))
+        print('| ----- | ------ |')
 
     for sorted_weight in sorted_weights:
         if output == 'markdown':
