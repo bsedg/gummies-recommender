@@ -21,6 +21,7 @@ import operator
 
 
 ATTRIBUTES = ['size', 'flavour', 'composition', 'colour-count']
+OUTPUT_TYPES = ['markdown', 'json']
 
 
 def calculate_weight(score, average_score, total_combinations, bias=1.0):
@@ -58,17 +59,34 @@ def find_weights(df, attributes, bias=1.0):
 
     return result
 
-def get_combination_display_string(combination_tuple, is_all=True):
+
+def get_combination_display_string_markdown(combination_tuple, is_all=True):
     """
     For all the attribtues, the string in the tuple from
     the dataframe is (u'small', u'sour', u'jube-jube', 4)
     """
     if is_all:
-        return "%s, %s, %s, %s flavours" % (combination_tuple[0], combination_tuple[1], combination_tuple[2], combination_tuple[3])
+        return "%s, %s, %s, %s colours" % (combination_tuple[0], combination_tuple[1], combination_tuple[2], combination_tuple[3])
     else:
         return "%s" % (combination_tuple)
 
-def find_biased_distribution(weighted_ratios, is_all=True):
+def get_combination_display_string_json(combination_tuple, attribute, is_all=True):
+    """
+    For all the attribtues, the string in the tuple from
+    the dataframe is (u'small', u'sour', u'jube-jube', 4)
+    """
+    output = {}
+    if is_all:
+        output['size'] = combination_tuple[0]
+        output['flavour'] = combination_tuple[1]
+        output['composition'] = combination_tuple[2]
+        output['colour-count'] = combination_tuple[3]
+        return output
+    else:
+        return { attribute: combination_tuple }
+
+
+def find_biased_distribution(weighted_ratios, output, attribute, is_all=True):
     """
     Unlike the fair distribution, this approach uses an unbounded knapsack
     inspired algorithm to calculate the highest score to be placed in the
@@ -77,16 +95,24 @@ def find_biased_distribution(weighted_ratios, is_all=True):
     sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
 
     total_ratio = 0.0
-    print("| Attribute Combination | Percentage |")
+    if output == 'markdown':
+        print("| Attribute Combination | Percentage |")
+
     for sorted_weight in sorted_weights:
         total_ratio_remaining_after_add = 100.0 - sorted_weight[1]['weight']
         total_ratio += sorted_weight[1]['weight']
-        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), sorted_weight[1]['weight']))
 
-    print("| Total | %f |" % total_ratio)
+        if output == 'markdown':
+            print("| %s | %f |" % (get_combination_display_string_markdown(sorted_weight[0], is_all), sorted_weight[1]['weight']))
+        else:
+            output_json = { 
+                "ratio": sorted_weight[1]['weight'],
+                "attributes": get_combination_display_string_json(sorted_weight[0], attribute, is_all)
+            }
+            print(json.dumps(output_json))
 
 
-def find_fair_distribution(weighted_ratios, is_all=True):
+def find_fair_distribution(weighted_ratios, output, attribute, is_all=True):
     """
     A fair distribution calcuation provides a 'safer' recommendation without
     the chance of eliminating any attribute combinations.
@@ -94,9 +120,19 @@ def find_fair_distribution(weighted_ratios, is_all=True):
     ratio_sum = sum(weighted_ratios[key]['weight'] for key in weighted_ratios.keys())
     sorted_weights = sorted(weighted_ratios.iteritems(), key=operator.itemgetter(1), reverse=True)
 
-    print("| Attribute Combination | Percentage |")
+    if output == 'markdown':
+        print('| Attribute Combination | Percentage |')
+
     for sorted_weight in sorted_weights:
-        print("| %s | %f |" % (get_combination_display_string(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
+        if output == 'markdown':
+            print("| %s | %f |" % (get_combination_display_string_markdown(sorted_weight[0], is_all), (sorted_weight[1]['weight'] / ratio_sum)))
+        else:
+            output_json = { 
+                "ratio": (sorted_weight[1]['weight'] / ratio_sum),
+                "attributes": get_combination_display_string_json(sorted_weight[0], attribute, is_all)
+            }
+            print(json.dumps(output_json))
+
 
 def main(argv):
     # arbitrary defaults chosen if input parameters are not provided
@@ -105,11 +141,15 @@ def main(argv):
     file_name = '../data/cleaned_scores.json'
     strategy = 'fair'
     bias_coefficient = 10.0
+    output = 'json'
 
     try:
-        opts, args = getopt.getopt(argv,"hf:a:t:b:",["file=", "attributes=", "type=", "bias="])
+        opts, args = getopt.getopt(argv,"hf:a:t:b:o:",["file=", "attributes=", "type=", "bias=", "output="])
     except getopt.GetoptError:
-        print('gummies_recommendation.py -a [size,flavour,colour-count,composition] -f ../data/cleaned_scores.json -t [fair, biased]')
+        print('gummies_recommendation.py')
+        print('\t-a,--attribute [size,flavour,colour-count,composition]')
+        print('\t-f,--file ../data/cleaned_scores.json -t [fair, biased]')
+        print('\t-o,--output [markdown, json]')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ("-f", "--file"):
@@ -127,16 +167,19 @@ def main(argv):
                 bias_coefficient = bias_value
             except:
                 pass
+        elif opt in ("-o", "--output"):
+            if arg in OUTPUT_TYPES:
+                output = arg
 
     scores = [json.loads(line) for line in open(file_name)]
     df = pd.DataFrame(scores)
 
     if strategy == 'fair':
         weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute])
-        find_fair_distribution(weighted_ratios, all_attributes)
+        find_fair_distribution(weighted_ratios, output, attribute, all_attributes)
     else:
         weighted_ratios = find_weights(df, ATTRIBUTES if all_attributes else [attribute], bias_coefficient)
-        find_biased_distribution(weighted_ratios, all_attributes)
+        find_biased_distribution(weighted_ratios, output, attribute, all_attributes)
 
 
 if __name__ == '__main__':
