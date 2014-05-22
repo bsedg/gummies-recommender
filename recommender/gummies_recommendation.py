@@ -40,6 +40,8 @@ def find_weights(df, attributes, bias=1.0):
     """
     df: DataFrame (pandas) for the loaded data
     attributes: String value of the attribute
+    bias: A coefficient to create more skewed percentages
+        for each attribute combination (1 is default).
     """
     grouped = df.groupby(attributes)
     groupby_mean = grouped.mean().sort('score', ascending=False)

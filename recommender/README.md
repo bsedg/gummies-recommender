@@ -4,8 +4,55 @@ gummies-recommender/recommender
 Recommendation summary and code to make the recommendation.
 
 ## Recommendation Model, Calculation
+The following function is what is called in the recommendation algorithm.  With the bias set at 1.0, it creates a 'fair distribution' otherwise it creates a 'biased distribution'.
+
+#### Biased Distribution Recommendation
+Calculation steps for finding the ratios for the distribution recommendation:
+
+##### Attribute combination calculated weight
+1. Find average scores per each attribute combination
+2. Find average of those scores
+3. Iterate through all attribute combination with their average score
+
+    ```python
+    def find_weights(df, attributes, bias=1.0):
+        """
+        df: DataFrame (pandas) for the loaded data
+        attributes: String value of the attribute
+        bias: A coefficient to create more skewed percentages
+            for each attribute combination (1 is default).
+        """
+        grouped = df.groupby(attributes)
+        groupby_mean = grouped.mean().sort('score', ascending=False)
+        generator_rows = groupby_mean.iterrows()
+        rows = [row for row in generator_rows]
+        total_scores = sum(float(x[1].values[0]) for x in rows)
+        average_score = total_scores / len(rows)
+        ...
+    ```
+
+4. Calculate difference from current score to average of scores for the *difference*
+5. Multiply the *difference* by the *bias* (could be default of just 1.0) for the *percentage change*
+6. Find *average percentage* if all combinations were equal
+7. Add the *average percentage* to the product of the *percentage change* and the *average percentage*
+
+    ```python
+    def calculate_weight(score, average_score, total_combinations, bias=1.0):
+        """
+        Calculates a new ratio, weight for the attribute combination
+        based on score, average of the scores, and total number of
+        combinations of given attribtues.
+        """
+        average_percentage = 100.0 / total_combinations
+        diff_from_average_score = score - average_score
+        percentage_change = diff_from_average_score * bias
+
+        # add the percentage change to the average percentage
+        return average_percentage + (average_percentage * percentage_change)
+    ```
 
 ## Attribute Level Distribution Ratios
+These calculations show the fair distribution, which does not add extra skew for average scores over or under the average of the scores.
 
 #### Size
 These results are a very even distribution, 1/3 each attribute.
@@ -38,7 +85,7 @@ Still a rather even distribution, but there is some skew toward fewer colour cou
 | 34.4% | 33.0% | 32.6% |
 
 ## Granular Distribution Ratios, With Bias Coefficient
-Using a biased recommendation, bias coefficient set to 10.0, the following distribution percentages are shown in the table below.
+Using a biased recommendation, bias coefficient set to 10.0, the following distribution percentages are shown in the table below.  Attribute combination scores that are above the average of the scores will have greater positive percentage change while the scores below the average will have greater negative percentage changes.
 
 | Attribute Combination | Percentage |
 | --------------------- | ---------- |
