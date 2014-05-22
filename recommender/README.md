@@ -3,6 +3,7 @@ gummies-recommender/recommender
 
 Recommendation summary and code to make the recommendation.
 
+
 ## Recommendation Model, Calculation
 The following function is what is called in the recommendation algorithm.  With the bias set at 1.0, it creates a 'fair distribution' otherwise it creates a 'biased distribution'.
 
@@ -57,35 +58,61 @@ These calculations show the fair distribution, which does not add extra skew for
 #### Size
 These results are a very even distribution, 1/3 each attribute.
 
-| Small | Medium | Large |
-| ----- | ------ | ----- |
-| 33%   | 33%    | 33%   |
+```
+python gummies_recommendation.py -t fair -o markdown -a size
+```
+| size | Percentage |
+| ----- | ------ |
+| small | 0.333562 |
+| medium | 0.333343 |
+| large | 0.333095 |
 
 #### Flavour
 Mostly comes out to a 50/50 split, but there is some skew towards *sour* flavour.
 
-| Sweet  | Sour    |
-| ------ | ------- |
-| 49.98% | 50.02%  |
+```
+python gummies_recommendation.py -t fair -o markdown -a flavour
+```
+
+| flavour | Percentage |
+| ----- | ------ |
+| sour | 0.500528 |
+| sweet | 0.499472 |
 
 
 #### Composition
 Again, a very even split.
 
-| Gummy | Marshmallow | Jube-Jube |
-| ----- | ------ | ----- |
-| 33.3%   | 33.3%    | 33.4%   |
+```
+python gummies_recommendation.py -t fair -o markdown -a composition
+```
+
+| composition | Percentage |
+| ----- | ------ |
+| jube-jube | 0.334359 |
+| gummy | 0.332872 |
+| marshmallow | 0.332769 |
 
 
 #### Colour Count
 Still a rather even distribution, but there is some skew toward fewer colour counts.
 
-| 1 | 2 | 4 |
-| ----- | ------ | ----- |
-| 34.4% | 33.0% | 32.6% |
+```
+python gummies_recommendation.py -t fair -o markdown -a colour-count
+```
+
+| colour-count | Percentage |
+| ----- | ------ |
+| 1 | 0.339249 |
+| 2 | 0.331335 |
+| 4 | 0.329416 |
 
 ## Granular Distribution Ratios, With Bias Coefficient
 Using a biased recommendation, bias coefficient set to 10.0, the following distribution percentages are shown in the table below.  Attribute combination scores that are above the average of the scores will have greater positive percentage change while the scores below the average will have greater negative percentage changes.
+
+```
+python gummies_recommendation.py -t biased -b 10.0 -o markdown
+```
 
 | Attribute Combination | Percentage |
 | --------------------- | ---------- |
